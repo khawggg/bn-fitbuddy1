@@ -115,22 +115,7 @@ app.post('/user-disease', (req, res) => {
     });
 });
 
-app.get('/api/profile/:userId', (req, res) => {
-    const userId = req.params.userId;
-    
-    // สมมุติว่าเรามีฟังก์ชัน getUserProfile ที่ดึงข้อมูลจากฐานข้อมูล
-    getUserProfile(userId)
-        .then(profile => {
-            if (!profile) {
-                return res.status(404).json({ message: 'ไม่พบข้อมูลผู้ใช้' });
-            }
-            res.json(profile);
-        })
-        .catch(error => {
-            console.error(error);
-            res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงข้อมูล' });
-        });
-});
+
 app.put('/api/users/:userId', (req, res) => {
     const userId = req.params.userId;
     const { name, age, gender, phone, email } = req.body;
