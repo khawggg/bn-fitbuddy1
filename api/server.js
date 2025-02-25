@@ -321,17 +321,26 @@ app.post('/users', (req, res) => {
 
 app.get('/getUserBMI', (req, res) => {
     const userId = req.query.userId;
-    const sql = 'SELECT h.bmi, h.assessment_date FROM health_assessment h WHERE h.user_id = ? ORDER BY h.assessment_date DESC LIMIT 10; ';
-    
+    console.log("Request userId:", userId);
+    const sql = `
+        SELECT h.bmi, h.assessment_date, h.weight, h.height
+        FROM health_assessment h
+        WHERE h.user_id = ?
+        ORDER BY h.assessment_date DESC
+        LIMIT 10;
+    `;
     db.query(sql, [userId], (err, results) => {
-      if (err) {
-        console.error('Error fetching BMI data:', err);
-        res.status(500).send('Failed to fetch BMI data');
-      } else {
-        res.json(results);
-      }
+        if (err) {
+            console.error('Error fetching BMI data:', err);
+            console.error("Error details:", err.message);
+            res.status(500).send('Failed to fetch BMI data');
+        } else {
+            console.log("Fetched BMI data:", results);
+            res.json(results);
+        }
     });
 });
+
 
 app.get("/users/:id", (req, res) => {
     const userId = req.params.id;
