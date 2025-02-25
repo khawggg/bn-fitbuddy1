@@ -115,21 +115,38 @@ app.post('/user-disease', (req, res) => {
     });
 });
 
-
-app.get("/users/:id", (req, res) => {
-    const userId = req.params.id;
-    db.query("SELECT * FROM users WHERE user_id = ?", [userId], (err, results) => {
-        if (err) {
-            console.error("❌ Error fetching user:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-        } else {
-            if (results.length > 0) {
-                res.json(results);  // ส่งข้อมูลของ user ตาม ID
-            } else {
-                res.status(404).json({ error: "User not found" });  // กรณีที่ไม่พบ user
+app.get('/api/profile/:userId', (req, res) => {
+    const userId = req.params.userId;
+    
+    // สมมุติว่าเรามีฟังก์ชัน getUserProfile ที่ดึงข้อมูลจากฐานข้อมูล
+    getUserProfile(userId)
+        .then(profile => {
+            if (!profile) {
+                return res.status(404).json({ message: 'ไม่พบข้อมูลผู้ใช้' });
             }
-        }
-    });
+            res.json(profile);
+        })
+        .catch(error => {
+            console.error(error);
+            res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงข้อมูล' });
+        });
+});
+app.put('/api/users/:userId', (req, res) => {
+    const userId = req.params.userId;
+    const { name, age, gender, phone, email } = req.body;
+
+    // สมมุติว่าเรามีฟังก์ชัน updateUserProfile ที่อัปเดตข้อมูลในฐานข้อมูล
+    updateUserProfile(userId, { name, age, gender, phone, email })
+        .then(result => {
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: 'ไม่พบผู้ใช้ที่ต้องการอัปเดต' });
+            }
+            res.json({ message: 'อัปเดตข้อมูลสำเร็จ' });
+        })
+        .catch(error => {
+            console.error(error);
+            res.status(500).json({ message: 'เกิดข้อผิดพลาดในการอัปเดตข้อมูล' });
+        });
 });
 
 
@@ -325,7 +342,7 @@ app.post('/users', (req, res) => {
 
 app.get('/getUserBMI', (req, res) => {
     const userId = req.query.userId;
-    const sql = 'SELECT bmi, u.user_id FROM health_assessment h JOIN users u ON h.user_id = u.user_id ';
+    const sql = 'SELECT  u.user_id , u_name , h.bmi FROM health_assessment h JOIN users u ON h.user_id = u.user_id ';
     
     db.query(sql, [userId], (err, results) => {
       if (err) {
@@ -337,3 +354,18 @@ app.get('/getUserBMI', (req, res) => {
     });
 });
   
+app.get("/users/:id", (req, res) => {
+    const userId = req.params.id;
+    db.query("SELECT * FROM users WHERE user_id = ?", [userId], (err, results) => {
+        if (err) {
+            console.error("❌ Error fetching user:", err);
+            res.status(500).json({ error: "Internal Server Error" });
+        } else {
+            if (results.length > 0) {
+                res.json(results);  // ส่งข้อมูลของ user ตาม ID
+            } else {
+                res.status(404).json({ error: "User not found" });  // กรณีที่ไม่พบ user
+            }
+        }
+    });
+});
