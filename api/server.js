@@ -49,24 +49,18 @@ app.get('/api/profile/:user_id', (req, res) => {
     const userId = req.params.user_id;
 
     const query = `
-    SELECT 
-        u.user_id,
-        u.name,
-        u.age,
-        u.gender,
-        u.email,
-        ha.weight,
-        ha.height,
-        ha.bmi,
-        GROUP_CONCAT(DISTINCT d.name SEPARATOR ', ') AS diseases,
-        GROUP_CONCAT(DISTINCT ud.exercise_type SEPARATOR ', ') AS exercise_types,
-        GROUP_CONCAT(DISTINCT ud.detailed_guideline SEPARATOR ', ') AS detailed_guidelines
+    SELECT
+    u.user_id,
+    u.name,
+    u.age,
+    u.gender,
+    u.email,
+    ha.weight,
+    ha.height,
+    ha.bmi
     FROM users u
     LEFT JOIN health_assessment ha ON u.user_id = ha.user_id
-    LEFT JOIN user_diseases ud ON u.user_id = ud.user_id
-    LEFT JOIN diseases d ON ud.disease_id = d.disease_id
-    WHERE u.user_id = ?
-    GROUP BY u.user_id, u.name, u.age, u.gender, u.email, ha.weight, ha.height, ha.bmi;
+    WHERE u.user_id = ?;
     `;
 
     db.query(query, [userId], (err, results) => {
@@ -327,7 +321,7 @@ app.post('/users', (req, res) => {
 
 app.get('/getUserBMI', (req, res) => {
     const userId = req.query.userId;
-    const sql = 'SELECT h.bmi, u.created_at FROM health_assessment h JOIN users u ON h.user_id = u.user_id WHERE h.user_id = ? ORDER BY u.created_at ASC LIMIT 10';
+    const sql = 'SELECT h.bmi, h.assessment_date FROM health_assessment h WHERE h.user_id = ? ORDER BY h.assessment_date DESC LIMIT 10; ';
     
     db.query(sql, [userId], (err, results) => {
       if (err) {
