@@ -115,22 +115,7 @@ app.post('/user-disease', (req, res) => {
     });
 });
 
-app.get('/api/profile/:userId', (req, res) => {
-    const userId = req.params.userId;
-    
-    // สมมุติว่าเรามีฟังก์ชัน getUserProfile ที่ดึงข้อมูลจากฐานข้อมูล
-    getUserProfile(userId)
-        .then(profile => {
-            if (!profile) {
-                return res.status(404).json({ message: 'ไม่พบข้อมูลผู้ใช้' });
-            }
-            res.json(profile);
-        })
-        .catch(error => {
-            console.error(error);
-            res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงข้อมูล' });
-        });
-});
+
 app.get("/users/:id", (req, res) => {
     const userId = req.params.id;
     db.query("SELECT * FROM users WHERE user_id = ?", [userId], (err, results) => {
@@ -340,7 +325,7 @@ app.post('/users', (req, res) => {
 
 app.get('/getUserBMI', (req, res) => {
     const userId = req.query.userId;
-    const sql = 'SELECT h.bmi, u.created_at FROM health_assessment h JOIN users u ON h.user_id = u.user_id WHERE h.user_id = ? ORDER BY u.created_at ASC LIMIT 10';
+    const sql = 'SELECT bmi, u.user_id FROM health_assessment h JOIN users u ON h.user_id = u.user_id ';
     
     db.query(sql, [userId], (err, results) => {
       if (err) {
