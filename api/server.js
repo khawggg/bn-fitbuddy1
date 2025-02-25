@@ -353,4 +353,20 @@ app.get('/getUserBMI', (req, res) => {
       }
     });
 });
-  
+
+app.get("/users/:id", (req, res) => {
+    const userId = req.params.id;
+    db.query("SELECT * FROM users WHERE user_id = ?", [userId], (err, results) => {
+        if (err) {
+            console.error("❌ Error fetching user:", err);
+            res.status(500).json({ error: "Internal Server Error" });
+        } else {
+            if (results.length > 0) {
+                res.json(results);  // ส่งข้อมูลของ user ตาม ID
+            } else {
+                res.status(404).json({ error: "User not found" });  // กรณีที่ไม่พบ user
+            }
+        }
+    });
+});
+
