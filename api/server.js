@@ -13,13 +13,15 @@ const port = 3000;
 app.use(cors()); 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
-// เพิ่มบรรทัดนี้หลังจาก app.use(express.static(...))
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+
+app.use(express.json());
+
+app.get("/", (req, res) => {
+    res.send("API is working!");
 });
-  
+
+module.exports = app;  // ให้ Vercel ใช้งาน API ได้
 // MySQL Connection
 
 const db = mysql.createConnection({
@@ -36,6 +38,11 @@ db.connect((err) => {
     } else {
         console.log('✅ Connected to MySQL');
     }
+});
+
+
+app.get("/", (req, res) => {
+    res.send("API is working!");
 });
 // API endpoint to get user profile data by user_id
 app.get('/api/profile/:user_id', (req, res) => {
@@ -347,7 +354,3 @@ app.get('/getUserBMI', (req, res) => {
     });
 });
   
-// Start the server
-module.exports = app;(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-});
