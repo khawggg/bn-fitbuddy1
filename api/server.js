@@ -49,18 +49,24 @@ app.get('/api/profile/:user_id', (req, res) => {
     const userId = req.params.user_id;
 
     const query = `
-    SELECT
-    u.user_id,
-    u.name,
-    u.age,
-    u.gender,
-    u.email,
-    ha.weight,
-    ha.height,
-    ha.bmi
+    SELECT 
+        u.user_id,
+        u.name,
+        u.age,
+        u.gender,
+        u.email,
+        ha.weight,
+        ha.height,
+        ha.bmi,
+        GROUP_CONCAT(DISTINCT d.name SEPARATOR ', ') AS diseases,
+        GROUP_CONCAT(DISTINCT ud.exercise_type SEPARATOR ', ') AS exercise_types,
+        GROUP_CONCAT(DISTINCT ud.detailed_guideline SEPARATOR ', ') AS detailed_guidelines
     FROM users u
     LEFT JOIN health_assessment ha ON u.user_id = ha.user_id
-    WHERE u.user_id = ?;
+    LEFT JOIN user_diseases ud ON u.user_id = ud.user_id
+    LEFT JOIN diseases d ON ud.disease_id = d.disease_id
+    WHERE u.user_id = ?
+    GROUP BY u.user_id, u.name, u.age, u.gender, u.email, ha.weight, ha.height, ha.bmi;
     `;
 
     db.query(query, [userId], (err, results) => {
@@ -109,7 +115,22 @@ app.post('/user-disease', (req, res) => {
     });
 });
 
-
+app.get('/api/profile/:userId', (req, res) => {
+    const userId = req.params.userId;
+    
+    // สมมุติว่าเรามีฟังก์ชัน getUserProfile ที่ดึงข้อมูลจากฐานข้อมูล
+    getUserProfile(userId)
+        .then(profile => {
+            if (!profile) {
+                return res.status(404).json({ message: 'ไม่พบข้อมูลผู้ใช้' });
+            }
+            res.json(profile);
+        })
+        .catch(error => {
+            console.error(error);
+            res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงข้อมูล' });
+        });
+});
 app.put('/api/users/:userId', (req, res) => {
     const userId = req.params.userId;
     const { name, age, gender, phone, email } = req.body;
@@ -321,40 +342,15 @@ app.post('/users', (req, res) => {
 
 app.get('/getUserBMI', (req, res) => {
     const userId = req.query.userId;
-    console.log("Request userId:", userId);
-    const sql = `
-        SELECT h.bmi, h.assessment_date, h.weight, h.height
-        FROM health_assessment h
-        WHERE h.user_id = ?
-        ORDER BY h.assessment_date DESC
-        LIMIT 10;
-    `;
+    const sql = 'SELECT h.bmi, u.created_at FROM health_assessment h JOIN users u ON h.user_id = u.user_id WHERE h.user_id = ? ORDER BY u.created_at ASC LIMIT 10';
+    
     db.query(sql, [userId], (err, results) => {
-        if (err) {
-            console.error('Error fetching BMI data:', err);
-            console.error("Error details:", err.message);
-            res.status(500).send('Failed to fetch BMI data');
-        } else {
-            console.log("Fetched BMI data:", results);
-            res.json(results);
-        }
+      if (err) {
+        console.error('Error fetching BMI data:', err);
+        res.status(500).send('Failed to fetch BMI data');
+      } else {
+        res.json(results);
+      }
     });
 });
-
-
-app.get("/users/:id", (req, res) => {
-    const userId = req.params.id;
-    db.query("SELECT * FROM users WHERE user_id = ?", [userId], (err, results) => {
-        if (err) {
-            console.error("❌ Error fetching user:", err);
-            res.status(500).json({ error: "Internal Server Error" });
-        } else {
-            if (results.length > 0) {
-                res.json(results);  // ส่งข้อมูลของ user ตาม ID
-            } else {
-                res.status(404).json({ error: "User not found" });  // กรณีที่ไม่พบ user
-            }
-        }
-    });
-});
-
+  
