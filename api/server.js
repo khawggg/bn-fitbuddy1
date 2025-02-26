@@ -1,10 +1,14 @@
+const http = require('http');
 const express = require('express');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const path = require('path');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const hostname = '127.0.0.1';
+const fs = require('fs');
 require('dotenv').config();
+
 
 const app = express();
 const port = 3000;
@@ -14,8 +18,12 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-
 app.use(express.json());
+app.listen(port, hostname, () => {
+    console.log(`Server running at http://${hostname}:${port}/`);
+});
+
+
 
 app.get("/", (req, res) => {
     res.send("API is working!");
@@ -24,14 +32,14 @@ app.get("/", (req, res) => {
 module.exports = app;  // ให้ Vercel ใช้งาน API ได้
 // MySQL Connection
 
+
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com',
-    user: process.env.DB_USER || '4KhA7MfZkdHo6df.roott',
-    password: process.env.DB_PASS || 'uNVdGaM9324l3SLH',
+    user: process.env.DB_USER || '4KhA7MfZkdHo6df.root',
+    password: process.env.DB_PASS || 'QZxt5AxGwZsfXCGA',
     database: process.env.DB_NAME || 'fit_buddy',
     ssl: { rejectUnauthorized: true }  // รองรับ TiDB Cloud SSL
 });
-
 db.connect((err) => {
     if (err) {
         console.error('❌ MySQL connection error:', err);
